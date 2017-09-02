@@ -1,0 +1,29 @@
+---
+layout: post
+title: "SSH端口转发"
+data: 2017-09-02 13:24:02
+description: 利用SSH的本地端口转发及远程端口转发，建立内网服务器与公网服务器的隧道链接
+category: linux
+tags: [Linux SSH]
+---
+
+假设有一个mongodb的实例运行在内网服务器local_server上，监听27017端口，有一台公有云服务器remote_server，想要从remote_server上访问该实例
+
+如果local_server能够连接外网，使用ssh的反向隧道就能达到这个目的，在local_server中运行
+> ssh -NR 19999:localhost:27017 user@remote_server
+
+执行该命令需要有remote_server superuser权限，此时在remote_server中访问本地19999端口即可
+
+如果local_server无法连接外网，则需要有一台能同时连接local_server和remote_server的client用端口转发在两台服务器之间建立ssh隧道，在client中运行下列命令
+> ssh -NR 19999:localhost:27018 user@remote_server
+
+将remote_server的19999端口转发至client的27018端口,需要remote_server superuser权限
+> ssh -NL 27018:local_server:27017 user@localhost
+
+将client27018端口转发至local_server27017端口,需要client superuser权限
+
+此时同上在remote_server访问19999端口即可
+
+工作中碰到了上面这个问题,负责部署的同事说无法从云端访问内部服务器.而本人当时虽然并不是很了解SSH的这种端口转发方法,但考虑到只要不是纯粹的物理隔绝,总能找到方法连接两台服务器.通过简单的调研和试验,确认了以上方法的有效性.
+
+
